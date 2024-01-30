@@ -6,8 +6,7 @@ class SarDataProcess:
     def __init__(self, num, sarDataFolder,
                  prefix, suffix, row, column):
         """
-
-        :param num: 处理的图片数量
+        :param num: 处理的数据数量
         :param sarDataFolder:  SAR图像数据存放的文件夹地址
         :param prefix: SAR图像数据保存的文件名前缀
         :param suffix: SAR图像数据保存的文件名后缀
@@ -26,14 +25,14 @@ class SarDataProcess:
         :return:
         """
         for i in range(self.num):
-            currentdataPath = os.path.join(self.sarDataFolder, self.prefix + str(i) + self.suffix)    # 假设文件按规律命名
+            currentdataPath = os.path.join(self.sarDataFolder, self.prefix + str(i) + self.suffix)    # 假设文件按规律命名，例如data1.echo,data2.echo,data3.echo...,data为文件名前缀，1、2、3...为i,echo为后缀）
             currentdata = self.loadData(currentdataPath)   # 读取单幅文件
             dataAmplitude = np.abs(currentdata)            # 求幅度
             if i == 0:
                 sumValue = dataAmplitude
             else:
-                sumValue = np.add(dataAmplitude, sumValue)     # 把每幅文件求幅度相加
-        meanValue = sumValue / self.num                    # 求平均幅度
+                sumValue = np.add(dataAmplitude, sumValue)     # 每次读入一幅数据，把每幅数据求幅度与前一幅相加
+        meanValue = sumValue / self.num                        # 求平均幅度
         np.save("meanValue", meanValue)
         return meanValue
 
@@ -55,7 +54,7 @@ class SarDataProcess:
                 stdVia = np.add(dataSquareAmplitude, stdVia)         # 为了减小内存使用，这里的stdVia实际上为dataSquareAmplitude
         # 下面都对stdVia进行了覆盖
         stdVia = stdVia / self.num
-        meanValue = np.load('meanValue.npy')     # 由于内存问题，无法同时计算均值，所有要先进行均值运算，保存后调用
+        meanValue = np.load('meanValue.npy')     # 由于内存问题，无法同时计算均值，所以要先进行均值运算，保存后调用
         stdVia = np.sqrt(stdVia - np.square(meanValue))              # 计算标准差
         meanValue[np.where(meanValue == 0)] = 0.0001                 # 将meanValue矩阵中所有零值幅值为0.0001
         stdVia = stdVia / meanValue                                  # 计算归一化标准差
@@ -64,8 +63,8 @@ class SarDataProcess:
     def loadData(self, dataPath):
         """
         读取文件(若雷达数据为二进制保存)
-        此处只为了表示怎么读取二进制保存的雷达数据
-        在实际中，SLC为int32保存,若SLC数据也为二进制保存,那么使用此方法读取加计算，内存将不够
+        （此处只为了表示怎么读取二进制保存的雷达数据
+        在实际中，SLC为int32保存,若SLC数据也为二进制保存,那么使用此方法读取加计算，内存将不够）
         :param dataPath: 数据文件地址
         :return: 返回复数矩阵
         """
